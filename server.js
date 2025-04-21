@@ -84,3 +84,24 @@ const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+// Socket.IO connection
+io.on("connection", (socket) => {
+  console.log("User connected");
+
+  socket.on("join", (username) => {
+    socket.username = username;  // Save username in socket
+    console.log(`${username} joined`);
+  });
+
+  socket.on("private message", ({ to, message }) => {
+    // Send message to target user
+    const target = [...io.sockets.sockets.values()].find(s => s.username === to);
+    if (target) {
+      target.emit("private message", { from: socket.username, message });
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected");
+  });
+});
