@@ -1,12 +1,63 @@
 <!DOCTYPE html>
-<html>
-<head><title>BakumChats - Login</title></head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BakumChats - Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .login-box {
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #00ffcc;
+      text-align: center;
+      width: 300px;
+    }
+    .login-box h2 {
+      margin-bottom: 20px;
+      color: #00ffcc;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+    }
+    button {
+      background: #00ffcc;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      color: black;
+      font-weight: bold;
+      margin: 5px;
+    }
+    button:hover {
+      background: #00ccaa;
+    }
+  </style>
+</head>
 <body>
-<h2>BakumChats Login</h2>
-<input type="text" id="username" placeholder="Username" />
-<input type="password" id="password" placeholder="Password" />
-<button onclick="login()">Login</button>
-<button onclick="register()">Register</button>
-<script src="script.js"></script>
+  <div class="login-box">
+    <h2>BakumChats</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <div>
+      <button onclick="login()">Login</button>
+      <button onclick="register()">Register</button>
+    </div>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>
