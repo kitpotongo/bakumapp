@@ -1,43 +1,57 @@
-const express = require('express');
+
+const express = require("express");
 const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
-const fs = require('fs');
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
+const fs = require("fs");
+const path = require("path");
 
-app.use(express.static('public'));
 app.use(express.json());
+app.use(express.static("public"));
 
-const USERS_FILE = 'users.json';
-let users = {};
-if (fs.existsSync(USERS_FILE)) {
-    users = JSON.parse(fs.readFileSync(USERS_FILE));
-}
+const usersFile = path.join(__dirname, "users.json");
 
-app.post('/register', (req, res) => {
+// Handle user registration
+app.post("/register", (req, res) => {
     const { username, password } = req.body;
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    
     if (users[username]) {
-        return res.json({ success: false, message: 'User already exists' });
+        return res.json({ success: false, message: "Username already exists" });
     }
-    users[username] = { password };
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users));
+
+    users[username] = password;
+    fs.writeFileSync(usersFile, JSON.stringify(users));
     res.json({ success: true });
 });
 
-app.post('/login', (req, res) => {
+// Handle login
+app.post("/login", (req, res) => {
     const { username, password } = req.body;
-    if (users[username] && users[username].password === password) {
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    
+    if (users[username] && users[username] === password) {
         res.json({ success: true });
     } else {
-        res.json({ success: false, message: 'Invalid credentials' });
+        res.json({ success: false, message: "Invalid username or password" });
     }
 });
 
-io.on('connection', (socket) => {
-    socket.on('chat message', (msg) => {
-        io.emit('chat message', msg);
+// Real-time chat
+io.on("connection", (socket) => {
+    console.log("A user connected");
+
+    socket.on("chat message", (msg) => {
+        io.emit("chat message", msg);
+    });
+
+    socket.on("disconnect", () => {
+        console.log("A user disconnected");
     });
 });
 
-http.listen(3000, () => {
-    console.log('Server running on http://localhost:3000');
+// Start server
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
