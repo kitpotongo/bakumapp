@@ -1,38 +1,53 @@
-function login() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
+const app = express();
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
 
-    fetch("/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            localStorage.setItem("username", username);
-            window.location.href = "chat.html";
-        } else {
-            alert(data.message);
-        }
+const usersFile = path.join(__dirname, "users.json");
+
+app.use(express.static("public"));
+app.use(express.json());
+
+// Register
+app.post("/register", (req, res) => {
+    const { username, password } = req.body;
+    const users = fs.existsSync(usersFile) ? JSON.parse(fs.readFileSync(usersFile)) : {};
+
+    if (users[username]) {
+        return res.json({ success: false, message: "Username taken" });
+    }
+
+    users[username] = password;
+    fs.writeFileSync(usersFile, JSON.stringify(users));
+    res.json({ success: true });
+});
+
+// Login
+app.post("/login", (req, res) => {
+    const { username, password } = req.body;
+    const users = fs.existsSync(usersFile) ? JSON.parse(fs.readFileSync(usersFile)) : {};
+
+    if (users[username] === password) {
+        res.json({ success: true });
+    } else {
+        res.json({ success: false, message: "Invalid credentials" });
+    }
+});
+
+// Real-time chat
+io.on("connection", socket => {
+    console.log("User connected");
+
+    socket.on("chat message", msg => {
+        io.emit("chat message", msg);
     });
-}
 
-function register() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-
-    fetch("/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            alert("Registered successfully! Now log in.");
-        } else {
-            alert(data.message);
-        }
+    socket.on("disconnect", () => {
+        console.log("User disconnected");
     });
-}
+});
+
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => console.log(`Server running on ${PORT}`));
