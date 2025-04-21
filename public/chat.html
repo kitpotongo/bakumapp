@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><title>BakumChats</title></head>
+<body>
+<h2>Welcome to BakumChats</h2>
+<ul id="messages"></ul>
+<input id="msg" autocomplete="off" />
+<button onclick="send()">Send</button>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+socket.on('chat message', msg => {
+    const li = document.createElement("li");
+    li.textContent = msg;
+    document.getElementById("messages").appendChild(li);
+});
+function send() {
+    const msg = document.getElementById("msg").value;
+    socket.emit('chat message', msg);
+    document.getElementById("msg").value = '';
+}
+</script>
+</body>
+</html>
