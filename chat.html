@@ -2,40 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat</title>
-  <style>
-    #messages { height: 300px; overflow-y: scroll; border: 1px solid #ddd; margin-bottom: 10px; padding: 10px; }
-    input { padding: 10px; }
-  </style>
+  <title>BakumChats - Chat</title>
+  <link rel="stylesheet" href="chat.css">
 </head>
 <body>
-  <h1>Welcome to the Chat</h1>
-  <div id="messages"></div>
-  
-  <input type="text" id="message-input" placeholder="Type a message...">
-  <button onclick="sendMessage()">Send</button>
-  
+  <div class="header">
+    <img src="pigeon.png" class="pigeon" alt="Pigeon" />
+    <h1>BakumChats</h1>
+  </div>
+
+  <div id="chat-box"></div>
+
+  <form id="chat-form">
+    <input id="msg" type="text" placeholder="Type your message..." autocomplete="off" required />
+    <button>Send</button>
+  </form>
+
   <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
-
-    // Emit username when connected
-    socket.emit('join', 'user-' + Math.floor(Math.random() * 10000));
-
-    // Receive and display messages
-    socket.on('private message', function(data) {
-      const messageElement = document.createElement('p');
-      messageElement.textContent = `${data.from}: ${data.message}`;
-      document.getElementById('messages').appendChild(messageElement);
-    });
-
-    // Send message
-    function sendMessage() {
-      const message = document.getElementById('message-input').value;
-      socket.emit('private message', { to: 'user-1234', message }); // Update recipient user
-      document.getElementById('message-input').value = '';
-    }
-  </script>
+  <script src="chat.js"></script>
 </body>
 </html>
