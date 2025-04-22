@@ -1,107 +1,45 @@
 const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const cors = require("cors");
+
+// Initialize the app and server
 const app = express();
-const fs = require("fs");
-const bcrypt = require("bcrypt");
-const session = require("express-session");
-const http = require("http").Server(app);
-const io = require("socket.io")(http);
-const path = require("path");
-
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(express.static("public"));
-
-app.use(session({
-  secret: "bakum_secret_key",
-  resave: false,
-  saveUninitialized: true
-}));
-
-const usersPath = "./users.json";
-let users = fs.existsSync(usersPath) ? JSON.parse(fs.readFileSync(usersPath)) : {};
-
-function saveUsers() {
-  fs.writeFileSync(usersPath, JSON.stringify(users, null, 2));
-}
-
-// Registration endpoint
-app.post("/register", async (req, res) => {
-  const { username, password } = req.body;
-  if (users[username]) {
-    return res.status(400).send("Username already exists");
+const server = http.createServer(app); // Create HTTP server
+const io = new Server(server, {
+  cors: {
+    origin: "*", // Allow all origins (update for production)
+    methods: ["GET", "POST"]
   }
-  const hashed = await bcrypt.hash(password, 10);
-  users[username] = { password: hashed };
-  saveUsers();
-  req.session.username = username;
-  res.status(200).send("Registered successfully");
 });
 
-// Login endpoint
-app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-  const user = users[username];
-  if (!user) return res.status(400).send("User not found");
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-  const valid = await bcrypt.compare(password, user.password);
-  if (!valid) return res.status(401).send("Incorrect password");
-
-  req.session.username = username;
-  res.status(200).send("Login successful");
-});
-
-// Serve chat page if logged in
-app.get("/chat", (req, res) => {
-  if (!req.session.username) return res.redirect("/");
-  res.sendFile(path.join(__dirname, "chat.html"));
-});
-
+// A simple test route
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  res.send("Chat server is running!");
 });
 
-// Socket.IO for real-time messaging
+// WebSocket logic for real-time chat
 io.on("connection", (socket) => {
-  console.log("User connected");
+  console.log("A user connected:", socket.id);
 
-  socket.on("join", (username) => {
-    socket.username = username;
+  // Handle incoming messages
+  socket.on("send_message", (data) => {
+    console.log("Message received:", data);
+    io.emit("receive_message", data); // Broadcast message to all clients
   });
 
-  socket.on("private message", ({ to, message }) => {
-    const target = [...io.sockets.sockets.values()].find(s => s.username === to);
-    if (target) {
-      target.emit("private message", { from: socket.username, message });
-    }
-  });
-
+  // Handle disconnection
   socket.on("disconnect", () => {
-    console.log("User disconnected");
+    console.log("A user disconnected:", socket.id);
   });
 });
 
-const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-// Socket.IO connection
-io.on("connection", (socket) => {
-  console.log("User connected");
-
-  socket.on("join", (username) => {
-    socket.username = username;  // Save username in socket
-    console.log(`${username} joined`);
-  });
-
-  socket.on("private message", ({ to, message }) => {
-    // Send message to target user
-    const target = [...io.sockets.sockets.values()].find(s => s.username === to);
-    if (target) {
-      target.emit("private message", { from: socket.username, message });
-    }
-  });
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected");
-  });
+// Start the server
+const PORT = 3001; // Set your desired port
+server.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
