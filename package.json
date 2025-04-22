@@ -9,5 +9,13 @@
     "express": "^4.17.1",
     "bcrypt": "^5.1.0",
     "socket.io": "^4.5.0"
+  },
+  "description": "Chat application for Bakumapp",
+  "comments": {
+    "installation": [
+      "1. Navigate to your project directory in the terminal.",
+      "2. Run 'npm install' to install the dependencies listed in this file.",
+      "3. Use 'npm start' to start the application after the dependencies are installed."
+    ]
   }
 }
